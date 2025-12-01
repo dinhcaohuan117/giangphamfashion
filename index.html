@@ -224,34 +224,82 @@
         </div>
     </div>
 
-    <script>
+<script>
+        // --- CÁC PHẦN KHỞI TẠO GIỮ NGUYÊN ---
         document.getElementById('currentDate').innerText = new Date().toLocaleDateString('vi-VN');
         document.getElementById('dateInput').valueAsDate = new Date();
         const formatter = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
         let items = [];
         let currentCompressedImage = ''; 
-        let pendingImportItems = []; 
 
         try { const saved = localStorage.getItem('sewingItems'); if(saved) items = JSON.parse(saved); } catch (e) {}
         renderItems();
 
-        // --- KHẮC PHỤC LỖI IN TRÊN ĐIỆN THOẠI (Logic ngầm) ---
+        // --- SỬA LỖI IN ẤN TRÊN GITHUB (QUAN TRỌNG) ---
         function handlePrint() {
-            // Tạm thời ép giao diện sang màu trắng (class 'printing-mode')
+            // 1. Ép giao diện sang màu trắng
             document.body.classList.add('printing-mode');
             
-            // Đợi 100ms cho trình duyệt vẽ lại rồi mới gọi in
+            // 2. Tăng thời gian chờ lên 500ms (nửa giây) để đảm bảo trình duyệt xử lý kịp
             setTimeout(() => {
                 window.print();
                 
-                // Sau khi hộp thoại in đóng lại thì xóa class 'printing-mode' đi
+                // 3. Sau khi hộp thoại in tắt, trả lại màu tối (đợi 1 giây cho chắc)
                 setTimeout(() => {
                     document.body.classList.remove('printing-mode');
-                }, 500);
+                }, 1000);
+            }, 500); 
+        }
+
+        // --- SỬA LỖI LƯU FILE TRÊN GITHUB ---
+        async function smartSave() {
+            if (items.length === 0) { alert("Chưa có dữ liệu!"); return; }
+            const dataStr = JSON.stringify(items);
+            
+            // Kiểm tra kỹ xem có phải PC không
+            if (window.showSaveFilePicker) {
+                try {
+                    const handle = await window.showSaveFilePicker({
+                        suggestedName: 'FashionData.json',
+                        types: [{ description: 'JSON', accept: {'application/json': ['.json']} }],
+                    });
+                    const writable = await handle.createWritable();
+                    await writable.write(dataStr);
+                    await writable.close();
+                    alert("Đã lưu đè thành công!");
+                } catch (err) { 
+                    // Nếu lỗi hoặc người dùng hủy, chuyển sang tải thường
+                    if(err.name !== 'AbortError') downloadFileFallback(dataStr); 
+                }
+            } else { 
+                // Mobile hoặc GitHub trên Mobile -> Bắt buộc tải file thường
+                downloadFileFallback(dataStr); 
+            }
+        }
+
+        function downloadFileFallback(dataStr) {
+            const blob = new Blob([dataStr], {type: "application/json"});
+            const url = URL.createObjectURL(blob);
+            const now = new Date();
+            const fileName = `Studio_${now.getDate()}_${now.getMonth()+1}.json`;
+            
+            const a = document.createElement('a');
+            a.style.display = 'none'; // Ẩn thẻ a đi cho gọn
+            a.href = url;
+            a.download = fileName;
+            
+            document.body.appendChild(a);
+            a.click();
+            
+            // Dọn dẹp sau khi tải
+            setTimeout(() => {
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                alert("Đã gửi lệnh tải file. Hãy kiểm tra thư mục 'Tải về' trên điện thoại.");
             }, 100);
         }
 
-        // --- HÀM TÍNH TOÁN (Giữ nguyên) ---
+        // --- CÁC HÀM CÒN LẠI GIỮ NGUYÊN ---
         function updateCalculatedTotal() {
             const qty = parseInt(document.getElementById('qtyInput').value) || 0;
             const rawPrice = document.getElementById('unitPriceInput').value.replace(/,/g, '');
@@ -264,39 +312,6 @@
             let value = input.value.replace(/\D/g, '');
             if(value) input.value = new Intl.NumberFormat('en-US').format(value);
             else input.value = '';
-        }
-
-        // --- LƯU DATA (Giữ nguyên logic thông minh) ---
-        async function smartSave() {
-            if (items.length === 0) { alert("Chưa có dữ liệu!"); return; }
-            const dataStr = JSON.stringify(items);
-            if (window.showSaveFilePicker) {
-                try {
-                    const handle = await window.showSaveFilePicker({
-                        suggestedName: 'FashionData.json',
-                        types: [{ description: 'JSON', accept: {'application/json': ['.json']} }],
-                    });
-                    const writable = await handle.createWritable();
-                    await writable.write(dataStr);
-                    await writable.close();
-                    alert("Đã lưu đè thành công!");
-                } catch (err) { if(err.name !== 'AbortError') downloadFileFallback(dataStr); }
-            } else { downloadFileFallback(dataStr); }
-        }
-
-        function downloadFileFallback(dataStr) {
-            const blob = new Blob([dataStr], {type: "application/json"});
-            const url = URL.createObjectURL(blob);
-            const now = new Date();
-            const fileName = `Studio_${now.getDate()}${now.getMonth()+1}.json`;
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = fileName;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            alert("Đã tải file về máy!");
         }
 
         function handleImageInput(input) {
@@ -344,7 +359,6 @@
             items.push(newItem);
             saveAndRender();
             
-            // Reset
             document.getElementById('descInput').value = '';
             document.getElementById('unitPriceInput').value = '';
             document.getElementById('totalPriceInput').value = '0';
@@ -369,7 +383,14 @@
                 total += item.price;
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-700/50 transition border-b border-slate-700";
-                let dateStr = ""; if (item.date) { const d = new Date(item.date); dateStr = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`; }
+                
+                // SỬA CỘT NGÀY THÁNG CHỈ HIỆN NGÀY/THÁNG
+                let dateStr = ""; 
+                if (item.date) { 
+                    const d = new Date(item.date); 
+                    dateStr = `${d.getDate()}/${d.getMonth()+1}`; // Bỏ phần Năm đi
+                }
+                
                 const showQty = item.quantity || 1;
                 const showUnitPrice = item.unitPrice ? formatter.format(item.unitPrice) : "-";
 
@@ -415,3 +436,4 @@
     </script>
 </body>
 </html>
+
