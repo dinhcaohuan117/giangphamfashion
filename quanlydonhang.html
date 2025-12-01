@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Studio Management V9.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        body { background-color: #0f172a; color: #e2e8f0; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        .modal-overlay { background-color: rgba(0, 0, 0, 0.8); backdrop-filter: blur(4px); }
+        
+        /* CSS CHO IN ẤN */
+        @media print {
+            .no-print { display: none !important; }
+            body { background-color: white !important; color: black !important; -webkit-print-color-adjust: exact; }
+            .print-container { box-shadow: none; border: none; margin: 0; padding: 0; background-color: white !important; }
+            .text-slate-200, .text-gray-400, .text-amber-500, .text-sky-400 { color: black !important; }
+            .bg-slate-800, .bg-slate-900 { background-color: white !important; border: 1px solid #ddd; }
+            table th { background-color: #f3f4f6 !important; color: black !important; border-bottom: 2px solid #000; }
+            table td { border-bottom: 1px solid #ddd; }
+            /* Ẩn bớt cột ngày khi in nếu giấy chật, ưu tiên số liệu tiền */
+            .print-hide-date { display: none; } 
+        }
+    </style>
+</head>
+<body class="font-sans antialiased min-h-screen">
+
+    <div class="max-w-4xl mx-auto md:my-8 p-4 md:p-8 bg-slate-800 md:rounded-2xl shadow-2xl print-container border border-slate-700 min-h-screen md:min-h-0">
+        
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b border-slate-700 pb-4 gap-2">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold text-amber-500 uppercase tracking-widest"><i class="fas fa-gem mr-2"></i>Giang Phạm Fashion</h1>
+                <p class="text-xs text-slate-400 mt-1 uppercase tracking-wide">Hệ thống quản lý</p>
+            </div>
+            <div class="text-right w-full md:w-auto flex justify-between md:block items-center">
+                <div class="md:hidden text-amber-500 font-bold text-sm">MENU</div>
+                <div>
+                    <p class="font-bold text-slate-200"><span id="currentDate"></span></p>
+                    <p class="text-xs text-slate-500 italic mt-1" id="itemCountLabel">0 sản phẩm</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="no-print grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 p-4 bg-slate-900/50 rounded-xl border border-slate-700">
+            <label class="col-span-1 cursor-pointer bg-slate-700 hover:bg-slate-600 text-slate-200 py-3 rounded-lg text-center transition shadow-lg flex flex-col items-center justify-center gap-1 active:scale-95">
+                <i class="fas fa-folder-open text-xl text-sky-400"></i><span class="text-xs font-bold uppercase">Mở File</span>
+                <input type="file" id="importFile" accept=".json" multiple onchange="importData(this)" class="hidden">
+            </label>
+            <button onclick="smartSave()" class="col-span-1 bg-slate-700 hover:bg-slate-600 text-slate-200 py-3 rounded-lg text-center transition shadow-lg flex flex-col items-center justify-center gap-1 active:scale-95">
+                <i class="fas fa-save text-xl text-emerald-400"></i><span class="text-xs font-bold uppercase">Lưu Data</span>
+            </button>
+            <button onclick="clearAll()" class="col-span-1 bg-slate-700 hover:bg-slate-600 text-slate-200 py-3 rounded-lg text-center transition shadow-lg flex flex-col items-center justify-center gap-1 active:scale-95">
+                <i class="fas fa-trash-alt text-xl text-rose-500"></i><span class="text-xs font-bold uppercase">Xóa tất cả</span>
+            </button>
+            <button onclick="window.print()" class="col-span-1 bg-amber-600 hover:bg-amber-700 text-white py-3 rounded-lg text-center transition shadow-lg flex flex-col items-center justify-center gap-1 active:scale-95 border border-amber-500">
+                <i class="fas fa-file-pdf text-xl"></i><span class="text-xs font-bold uppercase">Xuất PDF</span>
+            </button>
+        </div>
+
+        <div class="no-print bg-slate-900 p-5 rounded-xl mb-8 border border-slate-700 shadow-inner relative overflow-hidden">
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
+            <h2 class="text-lg font-bold mb-4 text-amber-500 flex items-center gap-2"><span class="bg-amber-500/20 p-1.5 rounded-full"><i class="fas fa-plus text-xs"></i></span> Thêm sản phẩm</h2>
+            
+            <div class="grid grid-cols-2 gap-4">
+                
+                <div class="col-span-2">
+                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Hình ảnh</label>
+                    <div class="flex gap-4 items-start">
+                        <label class="flex-none w-20 h-20 bg-slate-800 border-2 border-dashed border-slate-600 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-amber-500 hover:text-amber-500 transition text-slate-500 active:bg-slate-700">
+                            <i class="fas fa-camera text-xl mb-1"></i><span class="text-[9px] uppercase font-bold text-center px-1">Chụp/Chọn</span>
+                            <input type="file" id="imgInput" accept="image/*" onchange="handleImageInput(this)" class="hidden">
+                        </label>
+                        <div id="previewContainer" class="hidden flex-grow h-20 bg-slate-800 rounded-xl border border-slate-700 overflow-hidden relative">
+                            <img id="imgPreview" src="" class="w-full h-full object-cover" alt="Preview">
+                        </div>
+                        <div id="noImgText" class="flex-grow h-20 flex items-center text-slate-600 text-sm italic px-2">Chưa có ảnh.</div>
+                    </div>
+                </div>
+
+                <div class="col-span-2">
+                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Tên / Mô tả <span class="text-rose-500">*</span></label>
+                    <input type="text" id="descInput" class="w-full bg-slate-800 text-white p-3 rounded-lg border border-slate-700 focus:outline-none focus:border-amber-500 transition placeholder-slate-600" placeholder="Ví dụ: Váy hoa...">
+                </div>
+
+                <div class="col-span-1">
+                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Ngày hoàn thành</label>
+                    <input type="date" id="dateInput" class="w-full bg-slate-800 text-white p-3 rounded-lg border border-slate-700 focus:outline-none focus:border-amber-500 transition [color-scheme:dark]">
+                </div>
+                <div class="col-span-1">
+                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Số lượng</label>
+                    <input type="number" id="qtyInput" value="1" min="1" oninput="updateCalculatedTotal()" class="w-full bg-slate-800 text-white font-bold p-3 rounded-lg border border-slate-700 focus:outline-none focus:border-amber-500 transition text-center">
+                </div>
+
+                <div class="col-span-1">
+                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Đơn giá <span class="text-rose-500">*</span></label>
+                    <input type="text" id="unitPriceInput" inputmode="numeric" oninput="formatCurrency(this); updateCalculatedTotal()" class="w-full bg-slate-800 text-amber-400 font-bold p-3 rounded-lg border border-slate-700 focus:outline-none focus:border-amber-500 transition placeholder-slate-600 text-right" placeholder="0">
+                </div>
+                <div class="col-span-1">
+                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Thành tiền</label>
+                    <input type="text" id="totalPriceInput" readonly class="w-full bg-slate-900 text-emerald-400 font-bold p-3 rounded-lg border border-slate-700 focus:outline-none transition text-right cursor-not-allowed" value="0">
+                </div>
+
+            </div>
+            
+            <button onclick="addItem()" id="saveBtn" class="mt-6 w-full bg-gradient-to-r from-amber-600 to-amber-500 text-slate-900 py-3 rounded-lg hover:from-amber-500 hover:to-amber-400 transition font-bold shadow-lg active:scale-[0.98] uppercase tracking-wide text-sm">
+                <i class="fas fa-check-circle mr-1"></i> Lưu vào danh sách
+            </button>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-700">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-900 text-slate-400 text-xs uppercase tracking-wider">
+                        <th class="p-4 w-16">Ảnh</th>
+                        <th class="p-4">Tên SP</th>
+                        <th class="p-4 w-20 print-hide-date">Ngày</th> 
+                        <th class="p-4 w-12 text-center">SL</th>
+                        <th class="p-4 w-24 text-right">Đơn giá</th>
+                        <th class="p-4 w-28 text-right text-white">Thành tiền</th>
+                        <th class="p-4 w-8 no-print"></th>
+                    </tr>
+                </thead>
+                <tbody id="itemList" class="divide-y divide-slate-700 bg-slate-800"></tbody>
+                <tfoot>
+                    <tr class="bg-slate-900 border-t-2 border-amber-500/50">
+                        <td colspan="5" class="p-4 text-right text-slate-400 font-bold uppercase text-xs">Tổng cộng:</td>
+                        <td class="p-4 text-right text-amber-500 font-bold text-lg" id="totalAmount">0 đ</td>
+                        <td class="no-print"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        
+        <div class="hidden print:flex mt-12 justify-between px-8 text-black">
+            <div class="text-center"><p class="font-bold">Người lập phiếu</p><p class="text-sm italic mt-16">Giang Phạm</p></div>
+        </div>
+    </div>
+
+    <div id="importModal" class="fixed inset-0 z-50 flex items-center justify-center hidden modal-overlay p-4">
+        <div class="bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-sm border border-slate-600">
+            <div class="text-center mb-6">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-amber-500/20 mb-4"><i class="fas fa-info text-amber-500 text-xl"></i></div>
+                <h3 class="text-lg font-bold text-white" id="modalTitle">Dữ liệu mới</h3>
+                <p class="text-sm text-slate-400 mt-2" id="modalDesc">Chọn cách xử lý:</p>
+            </div>
+            <div class="flex flex-col gap-3">
+                <button onclick="confirmMerge()" class="w-full bg-sky-600 text-white px-4 py-3 rounded-xl hover:bg-sky-500 font-bold transition">Gộp thêm</button>
+                <button onclick="confirmReplace()" class="w-full bg-slate-700 text-white px-4 py-3 rounded-xl hover:bg-slate-600 font-bold transition border border-slate-600">Thay thế cũ</button>
+                <button onclick="closeModal()" class="w-full text-slate-500 px-4 py-2 hover:text-slate-300 text-sm font-medium mt-1">Hủy bỏ</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('currentDate').innerText = new Date().toLocaleDateString('vi-VN');
+        document.getElementById('dateInput').valueAsDate = new Date();
+        const formatter = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
+
+        let items = [];
+        let currentCompressedImage = ''; 
+        let pendingImportItems = []; 
+
+        try { const saved = localStorage.getItem('sewingItems'); if(saved) items = JSON.parse(saved); } catch (e) {}
+        renderItems();
+
+        // --- HÀM MỚI: TỰ ĐỘNG TÍNH TOÁN ---
+        function updateCalculatedTotal() {
+            // Lấy số lượng (nếu trống coi là 0)
+            const qty = parseInt(document.getElementById('qtyInput').value) || 0;
+            
+            // Lấy đơn giá (xóa dấu phẩy trước khi tính)
+            const rawPrice = document.getElementById('unitPriceInput').value.replace(/,/g, '');
+            const unitPrice = parseFloat(rawPrice) || 0;
+
+            // Tính thành tiền
+            const total = qty * unitPrice;
+
+            // Hiển thị ra ô Thành tiền (có định dạng phẩy)
+            document.getElementById('totalPriceInput').value = new Intl.NumberFormat('en-US').format(total);
+        }
+
+        // Định dạng tiền khi nhập (thêm dấu phẩy)
+        function formatCurrency(input) {
+            let value = input.value.replace(/\D/g, '');
+            if(value) {
+                input.value = new Intl.NumberFormat('en-US').format(value);
+            } else {
+                input.value = '';
+            }
+        }
+
+        async function smartSave() {
+            if (items.length === 0) { alert("Chưa có dữ liệu!"); return; }
+            const dataStr = JSON.stringify(items);
+            if (window.showSaveFilePicker) {
+                try {
+                    const handle = await window.showSaveFilePicker({
+                        suggestedName: 'FashionData_V9.json',
+                        types: [{ description: 'JSON', accept: {'application/json': ['.json']} }],
+                    });
+                    const writable = await handle.createWritable();
+                    await writable.write(dataStr);
+                    await writable.close();
+                    alert("Đã lưu đè thành công!");
+                } catch (err) { if(err.name !== 'AbortError') downloadFileFallback(dataStr); }
+            } else { downloadFileFallback(dataStr); }
+        }
+
+        function downloadFileFallback(dataStr) {
+            const blob = new Blob([dataStr], {type: "application/json"});
+            const url = URL.createObjectURL(blob);
+            const now = new Date();
+            const fileName = `Data_${now.getDate()}${now.getMonth()+1}.json`;
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            alert("Đã tải file dữ liệu về máy!");
+        }
+
+        function handleImageInput(input) {
+            const previewContainer = document.getElementById('previewContainer');
+            const previewImg = document.getElementById('imgPreview');
+            const noImgText = document.getElementById('noImgText');
+            const saveBtn = document.getElementById('saveBtn');
+            if (input.files && input.files[0]) {
+                saveBtn.innerText = "Đang nén ảnh...";
+                saveBtn.classList.add('opacity-50');
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        const maxWidth = 600; 
+                        const scaleSize = maxWidth / img.width;
+                        if (img.width > maxWidth) { canvas.width = maxWidth; canvas.height = img.height * scaleSize; } 
+                        else { canvas.width = img.width; canvas.height = img.height; }
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6); 
+                        previewImg.src = compressedDataUrl;
+                        currentCompressedImage = compressedDataUrl;
+                        previewContainer.classList.remove('hidden');
+                        noImgText.classList.add('hidden');
+                        saveBtn.innerText = "LƯU VÀO DANH SÁCH";
+                        saveBtn.classList.remove('opacity-50');
+                        saveBtn.innerHTML = '<i class="fas fa-check-circle mr-1"></i> Lưu vào danh sách';
+                    }
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function addItem() {
+            const desc = document.getElementById('descInput').value.trim();
+            const date = document.getElementById('dateInput').value;
+            const qty = parseInt(document.getElementById('qtyInput').value) || 1;
+            
+            // Lấy đơn giá để tính toán
+            const rawUnitPrice = document.getElementById('unitPriceInput').value.replace(/,/g, ''); 
+            
+            if (!desc) { alert("Chưa nhập tên đồ!"); document.getElementById('descInput').focus(); return; }
+            if (!rawUnitPrice) { alert("Chưa nhập đơn giá!"); document.getElementById('unitPriceInput').focus(); return; }
+
+            const unitPrice = parseFloat(rawUnitPrice);
+            // Thành tiền = Đơn giá * Số lượng
+            const total = unitPrice * qty;
+
+            let imgSrc = currentCompressedImage || 'https://via.placeholder.com/80/334155/FFFFFF?text=No+Img';
+            
+            const newItem = {
+                id: Date.now(),
+                img: imgSrc,
+                desc: desc,
+                date: date,
+                quantity: qty,          // Lưu số lượng
+                unitPrice: unitPrice,   // Lưu đơn giá
+                price: total            // Lưu tổng tiền (để tương thích logic cũ)
+            };
+            items.push(newItem);
+            saveAndRender();
+            
+            // Reset form
+            document.getElementById('descInput').value = '';
+            document.getElementById('unitPriceInput').value = '';
+            document.getElementById('totalPriceInput').value = '0';
+            document.getElementById('qtyInput').value = '1'; // Reset số lượng về 1
+            document.getElementById('imgInput').value = ''; 
+            document.getElementById('previewContainer').classList.add('hidden');
+            document.getElementById('noImgText').classList.remove('hidden');
+            currentCompressedImage = ''; 
+        }
+
+        function deleteItem(id) { if(confirm('Xóa mục này?')) { items = items.filter(item => item.id !== id); saveAndRender(); } }
+        function clearAll() { if(confirm('Xóa trắng toàn bộ?')) { items = []; saveAndRender(); } }
+        function saveAndRender() { try { localStorage.setItem('sewingItems', JSON.stringify(items)); } catch (e) {} renderItems(); }
+
+        function renderItems() {
+            const tbody = document.getElementById('itemList');
+            tbody.innerHTML = '';
+            let total = 0;
+            const sortedItems = items.sort((a, b) => {
+                const dateA = new Date(a.date);
+                const dateB = new Date(b.date);
+                if (dateB - dateA !== 0) return dateB - dateA;
+                return b.id - a.id;
+            });
+
+            sortedItems.forEach(item => {
+                total += item.price; // Cộng tổng tiền cuối cùng
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-700/50 transition border-b border-slate-700";
+                
+                let dateStr = "";
+                if (item.date) { const dateObj = new Date(item.date); dateStr = `${dateObj.getDate()}/${dateObj.getMonth() + 1}`; }
+                
+                // Xử lý hiển thị nếu dữ liệu cũ không có Số lượng/Đơn giá
+                const showQty = item.quantity || 1;
+                const showUnitPrice = item.unitPrice ? formatter.format(item.unitPrice) : "-";
+
+                tr.innerHTML = `
+                    <td class="p-3 align-middle"><img src="${item.img}" class="w-12 h-12 object-cover rounded-lg border border-slate-600" alt="Img"></td>
+                    <td class="p-3 align-middle"><p class="font-bold text-slate-200 text-sm md:text-base">${item.desc}</p></td>
+                    <td class="p-3 align-middle text-xs text-slate-400 print-hide-date">${dateStr}</td>
+                    
+                    <td class="p-3 align-middle text-center text-sky-400 font-bold">${showQty}</td>
+                    <td class="p-3 align-middle text-right text-xs text-slate-400">${showUnitPrice}</td>
+                    
+                    <td class="p-3 align-middle text-right font-bold text-amber-500 text-sm md:text-base">${formatter.format(item.price)}</td>
+                    <td class="p-3 align-middle text-center no-print"><button onclick="deleteItem(${item.id})" class="text-slate-500 hover:text-rose-500 transition p-2"><i class="fas fa-times"></i></button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+            document.getElementById('totalAmount').innerText = formatter.format(total);
+            document.getElementById('itemCountLabel').innerText = `${items.length} sp`;
+        }
+        
+        async function importData(input) {
+            const files = input.files;
+            if (!files || files.length === 0) return;
+            const readers = [];
+            for (let i = 0; i < files.length; i++) {
+                readers.push(new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => { try { resolve(JSON.parse(e.target.result)); } catch (err) { resolve([]); } };
+                    reader.readAsText(files[i]);
+                }));
+            }
+            const results = await Promise.all(readers);
+            const allNewItems = results.flat();
+            if (allNewItems.length > 0) {
+                pendingImportItems = allNewItems;
+                document.getElementById('modalDesc').innerText = `Tìm thấy ${allNewItems.length} sản phẩm.`;
+                document.getElementById('importModal').classList.remove('hidden');
+            }
+            input.value = '';
+        }
+        function confirmMerge() { items = removeDuplicates([...items, ...pendingImportItems]); saveAndRender(); closeModal(); }
+        function confirmReplace() { items = removeDuplicates(pendingImportItems); saveAndRender(); closeModal(); }
+        function closeModal() { document.getElementById('importModal').classList.add('hidden'); pendingImportItems = []; }
+        function removeDuplicates(array) { const map = new Map(); array.forEach(i => map.set(i.id, i)); return Array.from(map.values()); }
+    </script>
+</body>
+</html>
