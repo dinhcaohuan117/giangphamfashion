@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Studio Management V10.1</title>
+    <title>Studio Management V10.3 - Big Photo Print</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <style>
@@ -15,86 +15,48 @@
         .modal-overlay { background-color: rgba(0, 0, 0, 0.8); backdrop-filter: blur(4px); }
         
         /* --- KHẮC PHỤC LỖI IN TRÊN ĐIỆN THOẠI --- */
-        /* Class này sẽ được JS kích hoạt tạm thời khi bấm nút In */
         body.printing-mode { background-color: white !important; color: black !important; }
         body.printing-mode .bg-slate-800, body.printing-mode .bg-slate-900 { background-color: white !important; border: 1px solid #ccc !important; color: black !important; }
         body.printing-mode .text-slate-200, body.printing-mode .text-slate-400, body.printing-mode .text-amber-500, body.printing-mode .text-sky-400, body.printing-mode .text-emerald-400 { color: black !important; }
         body.printing-mode input { background-color: #fff !important; color: black !important; border: 1px solid #ccc !important; }
 
-		@media print {
-            /* 1. Ẩn các nút bấm không cần thiết */
+        @media print {
             .no-print { display: none !important; }
-
-            /* 2. Reset màu nền về trắng, chữ đen tuyệt đối */
             body { 
                 background-color: white !important; 
                 color: #000 !important; 
-                font-family: 'Times New Roman', serif; /* Dùng font này in ra nhìn sang hơn */
+                font-family: 'Times New Roman', serif;
             }
-            
             .print-container { 
-                box-shadow: none !important; 
-                border: none !important; 
-                margin: 0 !important; 
-                padding: 0 !important; 
-                width: 100% !important;
+                box-shadow: none !important; border: none !important; margin: 0 !important; padding: 0 !important; width: 100% !important;
             }
-
-            /* 3. Kẻ bảng (Table) chuyên nghiệp */
-            table {
-                width: 100% !important;
-                border-collapse: collapse !important; /* Gộp đường viền cho liền mạch */
-                margin-top: 20px;
-                font-size: 13pt; /* Chữ to rõ dễ đọc */
-            }
-
-            /* Header của bảng (Màu xám nhẹ) */
+            table { width: 100% !important; border-collapse: collapse !important; margin-top: 20px; font-size: 13pt; }
             th { 
-                background-color: #f0f0f0 !important; 
-                color: #000 !important; 
-                border: 1px solid #000 !important; /* Viền đen đậm */
-                padding: 10px !important;
-                text-align: center !important;
-                -webkit-print-color-adjust: exact; /* Ép trình duyệt in màu nền */
+                background-color: #f0f0f0 !important; color: #000 !important; border: 1px solid #000 !important; padding: 10px !important; text-align: center !important; -webkit-print-color-adjust: exact;
             }
+            td { border: 1px solid #ccc !important; padding: 8px 10px !important; color: #000 !important; vertical-align: middle; }
+            tr { page-break-inside: avoid; }
 
-            /* Các dòng dữ liệu */
-            td { 
-                border: 1px solid #ccc !important; /* Viền xám mảnh */
-                padding: 8px 10px !important;
-                color: #000 !important;
-                vertical-align: middle;
-            }
-
-            /* 4. Xử lý logic ngắt trang (Quan trọng) */
-            tr {
-                page-break-inside: avoid; /* Không cho phép cắt đôi dòng khi sang trang mới */
-            }
-            
-            /* 5. Chỉnh ảnh nhỏ gọn */
+            /* --- CẬP NHẬT: ẢNH TO VÀ CAO HƠN --- */
             img {
-                width: 50px !important;
-                height: 50px !important;
-                border-radius: 0 !important; /* Bỏ bo tròn khi in */
-                border: 1px solid #ddd;
-            }
-
-            /* 6. Text màu mè chuyển hết về đen */
-            .text-slate-200, .text-amber-500, .text-sky-400, .text-emerald-400 {
-                color: #000 !important;
+                width: 90px !important;     /* Rộng hơn */
+                height: 120px !important;   /* Cao hơn nhiều để rõ chi tiết */
+                object-fit: cover !important; /* Cắt ảnh vừa khung, không méo */
+                border-radius: 4px !important; 
+                border: 1px solid #999;
+                display: block;
+                margin: 0 auto;
             }
             
-            /* Riêng cột Thành tiền cho đậm lên */
-            td:nth-child(6) {
-                font-weight: bold;
+            /* Mở rộng cột đầu tiên (cột Ảnh) khi in */
+            th:first-child, td:first-child {
+                width: 100px !important;
+                min-width: 100px !important;
             }
 
-            /* Footer tổng tiền */
-            tfoot td {
-                border-top: 2px solid #000 !important;
-                font-size: 14pt;
-                background-color: #fff !important;
-            }
+            .text-slate-200, .text-amber-500, .text-sky-400, .text-emerald-400 { color: #000 !important; }
+            td:nth-child(6) { font-weight: bold; }
+            #tableFooter td { border-top: 2px solid #000 !important; font-size: 14pt; background-color: #fff !important; font-weight: bold; }
         }
     </style>
 </head>
@@ -104,13 +66,13 @@
         
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b border-slate-700 pb-4 gap-2">
             <div>
-                <h1 class="text-2xl md:text-3xl font-bold text-amber-500 uppercase tracking-widest"><i class="fas fa-gem mr-2"></i>Fashion Studio</h1>
-                <p class="text-xs text-slate-400 mt-1 uppercase tracking-wide">Hệ thống quản lý</p>
+                <h1 class="text-2xl md:text-3xl font-bold text-amber-500 uppercase tracking-widest"><i class="fas fa-gem mr-2"></i>PHẠM GIANG</h1>
+                <p class="text-xs text-slate-400 mt-1 uppercase tracking-wide">Hệ thống quản lý đơn hàng</p>
             </div>
             <div class="text-right w-full md:w-auto flex justify-between md:block items-center">
                 <div class="md:hidden text-amber-500 font-bold text-sm">MENU</div>
                 <div>
-                    <p class="font-bold text-slate-200"><span id="currentDate"></span></p>
+                    <p class="font-bold text-slate-200"> Ngày báo cáo: <span id="currentDate"></span></p>
                     <p class="text-xs text-slate-500 italic mt-1" id="itemCountLabel">0 sản phẩm</p>
                 </div>
             </div>
@@ -132,9 +94,9 @@
             </button>
         </div>
 
-        <div class="no-print bg-slate-900 p-5 rounded-xl mb-8 border border-slate-700 shadow-inner relative overflow-hidden">
+        <div id="inputForm" class="no-print bg-slate-900 p-5 rounded-xl mb-8 border border-slate-700 shadow-inner relative overflow-hidden transition-all duration-300">
             <div class="absolute -top-10 -right-10 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
-            <h2 class="text-lg font-bold mb-4 text-amber-500 flex items-center gap-2"><span class="bg-amber-500/20 p-1.5 rounded-full"><i class="fas fa-plus text-xs"></i></span> Thêm sản phẩm</h2>
+            <h2 id="formTitle" class="text-lg font-bold mb-4 text-amber-500 flex items-center gap-2"><span class="bg-amber-500/20 p-1.5 rounded-full"><i class="fas fa-plus text-xs"></i></span> Thêm sản phẩm</h2>
             
             <div class="grid grid-cols-2 gap-4">
                 <div class="col-span-2">
@@ -144,7 +106,7 @@
                             <i class="fas fa-camera text-xl mb-1"></i><span class="text-[9px] uppercase font-bold text-center px-1">Chụp/Chọn</span>
                             <input type="file" id="imgInput" accept="image/*" onchange="handleImageInput(this)" class="hidden">
                         </label>
-                        <div id="previewContainer" class="hidden flex-grow h-20 bg-slate-800 rounded-xl border border-slate-700 overflow-hidden relative">
+                        <div id="previewContainer" class="hidden flex-grow h-48 bg-slate-800 rounded-xl border border-slate-700 overflow-hidden relative group">
                             <img id="imgPreview" src="" class="w-full h-full object-cover" alt="Preview">
                         </div>
                         <div id="noImgText" class="flex-grow h-20 flex items-center text-slate-600 text-sm italic px-2">Chưa có ảnh.</div>
@@ -175,9 +137,14 @@
                 </div>
             </div>
             
-            <button onclick="addItem()" id="saveBtn" class="mt-6 w-full bg-gradient-to-r from-amber-600 to-amber-500 text-slate-900 py-3 rounded-lg hover:from-amber-500 hover:to-amber-400 transition font-bold shadow-lg active:scale-[0.98] uppercase tracking-wide text-sm">
-                <i class="fas fa-check-circle mr-1"></i> Lưu vào danh sách
-            </button>
+            <div class="flex gap-3 mt-6">
+                <button onclick="cancelEdit()" id="cancelBtn" class="hidden w-1/3 bg-slate-700 text-slate-300 py-3 rounded-lg hover:bg-slate-600 transition font-bold shadow-lg uppercase tracking-wide text-sm border border-slate-600">
+                    <i class="fas fa-times mr-1"></i> Hủy
+                </button>
+                <button onclick="addItem()" id="saveBtn" class="flex-1 bg-gradient-to-r from-amber-600 to-amber-500 text-slate-900 py-3 rounded-lg hover:from-amber-500 hover:to-amber-400 transition font-bold shadow-lg active:scale-[0.98] uppercase tracking-wide text-sm">
+                    <i class="fas fa-check-circle mr-1"></i> Lưu vào danh sách
+                </button>
+            </div>
         </div>
 
         <div class="overflow-x-auto rounded-xl border border-slate-700">
@@ -185,22 +152,26 @@
                 <thead>
                     <tr class="bg-slate-900 text-slate-400 text-xs uppercase tracking-wider">
                         <th class="p-4 w-16">Ảnh</th>
-                        <th class="p-4">Tên SP</th>
-                        <th class="p-4 w-20 print-hide-date">Ngày</th> 
+                        <th onclick="handleSort('desc')" class="p-4 cursor-pointer hover:text-white select-none transition group">
+            Tên SP <i id="sortIcon_desc" class="fas fa-sort ml-1 text-slate-600 group-hover:text-slate-400"></i>
+        </th>
+<th onclick="handleSort('date')" class="p-4 w-28 print-hide-date cursor-pointer hover:text-white select-none transition group">
+            Ngày <i id="sortIcon_date" class="fas fa-sort-down ml-1 text-amber-500"></i>
+        </th>
                         <th class="p-4 w-12 text-center">SL</th>
                         <th class="p-4 w-24 text-right">Đơn giá</th>
                         <th class="p-4 w-28 text-right text-white">Thành tiền</th>
-                        <th class="p-4 w-8 no-print"></th>
+                        <th class="p-4 w-20 no-print text-center">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody id="itemList" class="divide-y divide-slate-700 bg-slate-800"></tbody>
-                <tfoot>
+                <tbody id="tableFooter">
                     <tr class="bg-slate-900 border-t-2 border-amber-500/50">
                         <td colspan="5" class="p-4 text-right text-slate-400 font-bold uppercase text-xs">Tổng cộng:</td>
                         <td class="p-4 text-right text-amber-500 font-bold text-lg" id="totalAmount">0 đ</td>
                         <td class="no-print"></td>
                     </tr>
-                </tfoot>
+                </tbody>
             </table>
         </div>
         
@@ -224,82 +195,28 @@
         </div>
     </div>
 
-<script>
-        // --- CÁC PHẦN KHỞI TẠO GIỮ NGUYÊN ---
+    <script>
         document.getElementById('currentDate').innerText = new Date().toLocaleDateString('vi-VN');
-        document.getElementById('dateInput').valueAsDate = new Date();
+        const dateInput = document.getElementById('dateInput');if (!dateInput.value) {dateInput.valueAsDate = new Date();}
         const formatter = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
+        
         let items = [];
         let currentCompressedImage = ''; 
+        let pendingImportItems = []; 
+        let editingItemId = null;
+		let sortConfig = { key: 'date', direction: 'asc' };
 
         try { const saved = localStorage.getItem('sewingItems'); if(saved) items = JSON.parse(saved); } catch (e) {}
         renderItems();
 
-        // --- SỬA LỖI IN ẤN TRÊN GITHUB (QUAN TRỌNG) ---
         function handlePrint() {
-            // 1. Ép giao diện sang màu trắng
             document.body.classList.add('printing-mode');
-            
-            // 2. Tăng thời gian chờ lên 500ms (nửa giây) để đảm bảo trình duyệt xử lý kịp
             setTimeout(() => {
                 window.print();
-                
-                // 3. Sau khi hộp thoại in tắt, trả lại màu tối (đợi 1 giây cho chắc)
-                setTimeout(() => {
-                    document.body.classList.remove('printing-mode');
-                }, 1000);
-            }, 500); 
-        }
-
-        // --- SỬA LỖI LƯU FILE TRÊN GITHUB ---
-        async function smartSave() {
-            if (items.length === 0) { alert("Chưa có dữ liệu!"); return; }
-            const dataStr = JSON.stringify(items);
-            
-            // Kiểm tra kỹ xem có phải PC không
-            if (window.showSaveFilePicker) {
-                try {
-                    const handle = await window.showSaveFilePicker({
-                        suggestedName: 'FashionData.json',
-                        types: [{ description: 'JSON', accept: {'application/json': ['.json']} }],
-                    });
-                    const writable = await handle.createWritable();
-                    await writable.write(dataStr);
-                    await writable.close();
-                    alert("Đã lưu đè thành công!");
-                } catch (err) { 
-                    // Nếu lỗi hoặc người dùng hủy, chuyển sang tải thường
-                    if(err.name !== 'AbortError') downloadFileFallback(dataStr); 
-                }
-            } else { 
-                // Mobile hoặc GitHub trên Mobile -> Bắt buộc tải file thường
-                downloadFileFallback(dataStr); 
-            }
-        }
-
-        function downloadFileFallback(dataStr) {
-            const blob = new Blob([dataStr], {type: "application/json"});
-            const url = URL.createObjectURL(blob);
-            const now = new Date();
-            const fileName = `Studio_${now.getDate()}_${now.getMonth()+1}.json`;
-            
-            const a = document.createElement('a');
-            a.style.display = 'none'; // Ẩn thẻ a đi cho gọn
-            a.href = url;
-            a.download = fileName;
-            
-            document.body.appendChild(a);
-            a.click();
-            
-            // Dọn dẹp sau khi tải
-            setTimeout(() => {
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(url);
-                alert("Đã gửi lệnh tải file. Hãy kiểm tra thư mục 'Tải về' trên điện thoại.");
+                setTimeout(() => { document.body.classList.remove('printing-mode'); }, 500);
             }, 100);
         }
 
-        // --- CÁC HÀM CÒN LẠI GIỮ NGUYÊN ---
         function updateCalculatedTotal() {
             const qty = parseInt(document.getElementById('qtyInput').value) || 0;
             const rawPrice = document.getElementById('unitPriceInput').value.replace(/,/g, '');
@@ -314,14 +231,47 @@
             else input.value = '';
         }
 
+        async function smartSave() {
+            if (items.length === 0) { alert("Chưa có dữ liệu!"); return; }
+            const dataStr = JSON.stringify(items);
+            if (window.showSaveFilePicker) {
+                try {
+                    const handle = await window.showSaveFilePicker({
+                        suggestedName: 'FashionData.json',
+                        types: [{ description: 'JSON', accept: {'application/json': ['.json']} }],
+                    });
+                    const writable = await handle.createWritable();
+                    await writable.write(dataStr);
+                    await writable.close();
+                    alert("Đã lưu đè thành công!");
+                } catch (err) { if(err.name !== 'AbortError') downloadFileFallback(dataStr); }
+            } else { downloadFileFallback(dataStr); }
+        }
+
+        function downloadFileFallback(dataStr) {
+            const blob = new Blob([dataStr], {type: "application/json"});
+            const url = URL.createObjectURL(blob);
+            const now = new Date();
+            const fileName = `Studio_${now.getDate()}${now.getMonth()+1}.json`;
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
         function handleImageInput(input) {
             const previewContainer = document.getElementById('previewContainer');
             const previewImg = document.getElementById('imgPreview');
             const noImgText = document.getElementById('noImgText');
             const saveBtn = document.getElementById('saveBtn');
             if (input.files && input.files[0]) {
-                saveBtn.innerText = "Đang nén ảnh...";
+                const isEditing = editingItemId !== null;
+                saveBtn.innerText = isEditing ? "Đang xử lý..." : "Đang nén ảnh...";
                 saveBtn.classList.add('opacity-50');
+                
                 const reader = new FileReader();
                 reader.onload = function(event) {
                     const img = new Image(); img.src = event.target.result;
@@ -334,8 +284,13 @@
                         const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6); 
                         previewImg.src = compressedDataUrl; currentCompressedImage = compressedDataUrl;
                         previewContainer.classList.remove('hidden'); noImgText.classList.add('hidden');
-                        saveBtn.innerText = "LƯU VÀO DANH SÁCH"; saveBtn.classList.remove('opacity-50');
-                        saveBtn.innerHTML = '<i class="fas fa-check-circle mr-1"></i> Lưu vào danh sách';
+                        
+                        saveBtn.classList.remove('opacity-50');
+                        if(isEditing) {
+                            saveBtn.innerHTML = '<i class="fas fa-save mr-1"></i> Cập nhật thay đổi';
+                        } else {
+                            saveBtn.innerHTML = '<i class="fas fa-check-circle mr-1"></i> Lưu vào danh sách';
+                        }
                     }
                 }
                 reader.readAsDataURL(input.files[0]);
@@ -353,46 +308,174 @@
 
             const unitPrice = parseFloat(rawUnitPrice);
             const total = unitPrice * qty;
-            let imgSrc = currentCompressedImage || 'https://via.placeholder.com/80/334155/FFFFFF?text=No+Img';
             
-            const newItem = { id: Date.now(), img: imgSrc, desc: desc, date: date, quantity: qty, unitPrice: unitPrice, price: total };
-            items.push(newItem);
+            let imgSrc = currentCompressedImage || 'https://via.placeholder.com/80/334155/FFFFFF?text=No+Img';
+
+            if (editingItemId) {
+                const index = items.findIndex(i => i.id === editingItemId);
+                if (index !== -1) {
+                    items[index] = { 
+                        ...items[index], 
+                        desc: desc, 
+                        date: date, 
+                        quantity: qty, 
+                        unitPrice: unitPrice, 
+                        price: total,
+                        img: currentCompressedImage || items[index].img 
+                    };
+                }
+            } else {
+                const newItem = { id: Date.now(), img: imgSrc, desc: desc, date: date, quantity: qty, unitPrice: unitPrice, price: total };
+                items.push(newItem);
+            }
+
             saveAndRender();
+            cancelEdit(); 
+        }
+
+        function editItem(id) {
+            const item = items.find(i => i.id === id);
+            if (!item) return;
+
+            editingItemId = id; 
+            
+            document.getElementById('descInput').value = item.desc;
+            document.getElementById('dateInput').value = item.date;
+            document.getElementById('qtyInput').value = item.quantity || 1;
+            
+            const formattedPrice = new Intl.NumberFormat('en-US').format(item.unitPrice);
+            document.getElementById('unitPriceInput').value = formattedPrice;
+            updateCalculatedTotal(); 
+
+            currentCompressedImage = ''; 
+            const previewContainer = document.getElementById('previewContainer');
+            const previewImg = document.getElementById('imgPreview');
+            const noImgText = document.getElementById('noImgText');
+            
+            if (item.img && !item.img.includes('placeholder')) {
+                previewImg.src = item.img;
+                previewContainer.classList.remove('hidden');
+                noImgText.classList.add('hidden');
+            } else {
+                previewContainer.classList.add('hidden');
+                noImgText.classList.remove('hidden');
+            }
+
+            document.getElementById('formTitle').innerHTML = '<span class="bg-sky-500/20 p-1.5 rounded-full"><i class="fas fa-edit text-xs text-sky-500"></i></span> Chỉnh sửa sản phẩm';
+            document.getElementById('formTitle').classList.replace('text-amber-500', 'text-sky-500');
+            
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.innerHTML = '<i class="fas fa-save mr-1"></i> Cập nhật thay đổi';
+            saveBtn.classList.replace('from-amber-600', 'from-sky-600');
+            saveBtn.classList.replace('to-amber-500', 'to-sky-500');
+            saveBtn.classList.replace('hover:from-amber-500', 'hover:from-sky-500');
+            saveBtn.classList.replace('hover:to-amber-400', 'hover:to-sky-400');
+
+            document.getElementById('cancelBtn').classList.remove('hidden');
+            document.querySelector('.print-container').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function cancelEdit() {
+            editingItemId = null;
+            currentCompressedImage = '';
             
             document.getElementById('descInput').value = '';
             document.getElementById('unitPriceInput').value = '';
             document.getElementById('totalPriceInput').value = '0';
             document.getElementById('qtyInput').value = '1';
             document.getElementById('imgInput').value = ''; 
+            //document.getElementById('dateInput').valueAsDate = new Date();
+
             document.getElementById('previewContainer').classList.add('hidden');
             document.getElementById('noImgText').classList.remove('hidden');
-            currentCompressedImage = ''; 
+
+            document.getElementById('formTitle').innerHTML = '<span class="bg-amber-500/20 p-1.5 rounded-full"><i class="fas fa-plus text-xs"></i></span> Thêm sản phẩm';
+            document.getElementById('formTitle').classList.replace('text-sky-500', 'text-amber-500');
+
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.innerHTML = '<i class="fas fa-check-circle mr-1"></i> Lưu vào danh sách';
+            saveBtn.className = "flex-1 bg-gradient-to-r from-amber-600 to-amber-500 text-slate-900 py-3 rounded-lg hover:from-amber-500 hover:to-amber-400 transition font-bold shadow-lg active:scale-[0.98] uppercase tracking-wide text-sm";
+            
+            document.getElementById('cancelBtn').classList.add('hidden');
         }
 
-        function deleteItem(id) { if(confirm('Xóa mục này?')) { items = items.filter(item => item.id !== id); saveAndRender(); } }
-        function clearAll() { if(confirm('Xóa trắng toàn bộ?')) { items = []; saveAndRender(); } }
+        function deleteItem(id) { 
+            if(confirm('Xóa mục này?')) { 
+                items = items.filter(item => item.id !== id); 
+                if (editingItemId === id) cancelEdit();
+                saveAndRender(); 
+            } 
+        }
+        function clearAll() { if(confirm('Xóa trắng toàn bộ?')) { items = []; cancelEdit(); saveAndRender(); } }
         function saveAndRender() { try { localStorage.setItem('sewingItems', JSON.stringify(items)); } catch (e) {} renderItems(); }
 
-        function renderItems() {
-            const tbody = document.getElementById('itemList'); tbody.innerHTML = ''; let total = 0;
-            const sortedItems = items.sort((a, b) => {
-                const dateA = new Date(a.date); const dateB = new Date(b.date);
-                if (dateB - dateA !== 0) return dateB - dateA; return b.id - a.id;
+// --- HÀM XỬ LÝ CLICK VÀO TIÊU ĐỀ ---
+        function handleSort(key) {
+            // Nếu click lại vào cột đang sort -> Đảo ngược thứ tự
+            if (sortConfig.key === key) {
+                sortConfig.direction = sortConfig.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                // Nếu click vào cột mới -> Mặc định giảm dần (hoặc tăng dần tùy ý)
+                sortConfig.key = key;
+                sortConfig.direction = 'desc'; 
+            }
+            renderItems(); // Vẽ lại bảng
+        }
+		
+ function renderItems() {
+            const tbody = document.getElementById('itemList'); 
+            tbody.innerHTML = ''; 
+            let total = 0;
+
+            // --- 1. CẬP NHẬT ICON MŨI TÊN ---
+            // Reset cả 2 icon về mặc định (màu xám, 2 chiều)
+            document.getElementById('sortIcon_desc').className = "fas fa-sort ml-1 text-slate-600";
+            document.getElementById('sortIcon_date').className = "fas fa-sort ml-1 text-slate-600";
+            
+            // Tìm icon của cột đang được active và đổi màu/chiều mũi tên
+            const activeIcon = document.getElementById(`sortIcon_${sortConfig.key}`);
+            if (activeIcon) {
+                // Nếu đang tăng dần (asc) thì mũi tên lên, giảm dần (desc) thì mũi tên xuống
+                activeIcon.className = `fas fa-sort-${sortConfig.direction === 'asc' ? 'up' : 'down'} ml-1 text-amber-500`;
+            }
+
+            // --- 2. XỬ LÝ LOGIC SẮP XẾP ---
+            // Tạo bản sao của mảng items để sắp xếp ([...items])
+            const sortedItems = [...items].sort((a, b) => {
+                let valA = a[sortConfig.key];
+                let valB = b[sortConfig.key];
+
+                // Nếu đang sort cột Ngày -> Đổi về dạng Time số để so sánh chuẩn xác
+                if (sortConfig.key === 'date') {
+                    valA = new Date(valA || '1970-01-01').getTime();
+                    valB = new Date(valB || '1970-01-01').getTime();
+                } 
+                // Nếu đang sort cột Tên -> Đổi về chữ thường để so sánh a-z không phân biệt hoa thường
+                else if (typeof valA === 'string') {
+                    valA = valA.toLowerCase();
+                    valB = valB.toLowerCase();
+                }
+
+                // So sánh giá trị
+                if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+                if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+                return 0;
             });
+
+            // --- 3. VẼ DỮ LIỆU RA BẢNG (Giữ nguyên giao diện cũ) ---
             sortedItems.forEach(item => {
                 total += item.price;
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-700/50 transition border-b border-slate-700";
+                tr.className = "hover:bg-slate-700/50 transition border-b border-slate-700 group"; 
                 
-                // SỬA CỘT NGÀY THÁNG CHỈ HIỆN NGÀY/THÁNG
-                let dateStr = ""; 
-                if (item.date) { 
-                    const d = new Date(item.date); 
-                    dateStr = `${d.getDate()}/${d.getMonth()+1}`; // Bỏ phần Năm đi
-                }
-                
+                let dateStr = ""; if (item.date) { const d = new Date(item.date); dateStr = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`; }
                 const showQty = item.quantity || 1;
                 const showUnitPrice = item.unitPrice ? formatter.format(item.unitPrice) : "-";
+
+                // Highlight dòng đang sửa
+                if (item.id === editingItemId) {
+                    tr.classList.add('bg-sky-900/30', 'border-sky-500/50');
+                }
 
                 tr.innerHTML = `
                     <td class="p-3 align-middle"><img src="${item.img}" class="w-12 h-12 object-cover rounded-lg border border-slate-600"></td>
@@ -401,7 +484,16 @@
                     <td class="p-3 align-middle text-center text-sky-400 font-bold">${showQty}</td>
                     <td class="p-3 align-middle text-right text-xs text-slate-400">${showUnitPrice}</td>
                     <td class="p-3 align-middle text-right font-bold text-amber-500 text-sm md:text-base">${formatter.format(item.price)}</td>
-                    <td class="p-3 align-middle text-center no-print"><button onclick="deleteItem(${item.id})" class="text-slate-500 hover:text-rose-500 transition p-2"><i class="fas fa-times"></i></button></td>
+                    <td class="p-3 align-middle text-center no-print">
+                        <div class="flex justify-center gap-2">
+                            <button onclick="editItem(${item.id})" class="text-slate-500 hover:text-sky-400 transition p-2 bg-slate-800 hover:bg-slate-700 rounded-lg shadow-sm" title="Sửa">
+                                <i class="fas fa-pen"></i>
+                            </button>
+                            <button onclick="deleteItem(${item.id})" class="text-slate-500 hover:text-rose-500 transition p-2 bg-slate-800 hover:bg-slate-700 rounded-lg shadow-sm" title="Xóa">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -436,4 +528,3 @@
     </script>
 </body>
 </html>
-
